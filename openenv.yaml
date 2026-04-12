@@ -1,0 +1,135 @@
+name: hospital-openenv
+version: "1.1.0"
+description: >
+  A production-quality OpenEnv benchmark simulating real-world hospital
+  triage and resource allocation. An AI agent must recommend treatments
+  for patients and allocate scarce hospital resources (ICU beds, general
+  beds, doctors) under time pressure and hard constraints.
+  Reward is clamped to [-1, +1]; normalized reward = (value + 1) / 2.
+
+author: "OpenEnv Hospital Benchmark"
+license: MIT
+
+environment:
+  class: environment.env.HospitalEnv
+  module: environment
+  entrypoint: server:app
+  interface:
+    reset: POST /reset
+    step:  POST /step
+    state: GET  /state
+
+observation_space:
+  type: structured
+  schema: environment.models.Observation
+  description: >
+    Contains the list of current patients with symptoms, severity [0–1],
+    urgency level (critical/high/moderate/low), age, comorbidities, and
+    hours_waiting; plus hospital resource counts (ICU beds, general beds,
+    doctors) and task metadata.
+
+action_space:
+  type: structured
+  schema: environment.models.Action
+  description: >
+    A list of PatientAction objects, one per patient. Each specifies the
+    chosen treatment (10 types), resource allocations (ICU bed, general
+    bed, doctor), and a unique integer priority_rank (1 = highest).
+
+reward:
+  type: dense
+  schema: environment.models.Reward
+  range: [-1.0, +1.0]
+  normalized_range: [0.0, 1.0]
+  normalization: "(value + 1) / 2"
+  description: >
+    Dense, shaped reward with components for treatment correctness,
+    priority correctness, resource efficiency, critical-patient bonuses,
+    resource misuse penalties, ignored-critical penalties, and wait-time
+    penalties. Raw value clamped to [-1, +1]. Normalized = (raw + 1) / 2.
+
+tasks:
+  - id: task_easy
+    name: "Single Patient Triage"
+    difficulty: easy
+    description: >
+      One critical patient with chest pain and shortness of breath.
+      Resources are fully available. The agent must identify the correct
+      cardiac intervention and assign an ICU bed appropriately.
+    max_steps: 1
+    grader: environment.graders.grade_easy
+    grader_weights:
+      treatment_correctness: 0.60
+      resource_allocation: 0.30
+      priority_ranking: 0.10
+    baseline_score: 0.95
+
+  - id: task_medium
+    name: "Multi-Patient Prioritization"
+    difficulty: medium
+    description: >
+      Five patients with varying urgency (two critical, one high, one moderate,
+      one low) and limited resources (2 ICU beds, 3 doctors). The agent must
+      triage in correct priority order, assign optimal treatments, and avoid
+      wasting scarce ICU beds on non-critical patients.
+    max_steps: 1
+    grader: environment.graders.grade_medium
+    grader_weights:
+      treatment_correctness: 0.40
+      priority_ranking: 0.35
+      resource_allocation: 0.25
+      ignored_critical_penalty: -0.30
+    baseline_score: 0.75
+
+  - id: task_hard
+    name: "Critical Overload with Dynamic Events"
+    difficulty: hard
+    description: >
+      Eight patients with four requiring ICU-level care, but only 2 ICU beds
+      remain. Doctors are scarce (3 for 8 patients). A ninth emergency patient
+      arrives dynamically at step 2. The agent must make life-critical ICU
+      allocation decisions, maximize expected outcomes under hard resource
+      conflicts, and handle the dynamic patient spike.
+    max_steps: 3
+    grader: environment.graders.grade_hard
+    grader_weights:
+      treatment_correctness: 0.35
+      priority_ranking: 0.30
+      resource_allocation: 0.35
+      ignored_critical_penalty: -0.50
+      triage_bonus: +0.10
+    baseline_score: 0.60
+
+evaluation:
+  deterministic: true
+  reproducible: true
+  grader_range: [0.0, 1.0]
+  partial_credit: true
+  reward_range: [-1.0, 1.0]
+  normalized_reward_range: [0.0, 1.0]
+
+docker:
+  base_image: python:3.11-slim
+  port: 7860
+  startup_command: "uvicorn server:app --host 0.0.0.0 --port 7860"
+  memory_limit: "8Gi"
+  cpu_limit: 2
+
+inference:
+  script: inference.py
+  env_vars:
+    - API_BASE_URL
+    - MODEL_NAME
+    - OPENAI_API_KEY
+  log_format: |
+    [START] task: <task_name>
+    [STEP] observation: <json> action: <json> reward: <float>
+    [END] score: <float>
+
+tags:
+  - healthcare
+  - triage
+  - resource-allocation
+  - decision-making
+  - openenv
+  - benchmark
