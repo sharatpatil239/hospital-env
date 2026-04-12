@@ -1,60 +1,161 @@
- Hospital Decision-Making OpenEnv
+Hospital Decision-Making OpenEnv
 
-This project simulates a hospital emergency department where decisions actually matter.
+A simulation-based AI project that models real-time hospital emergency decision-making under resource constraints. This system evaluates how effectively an agent allocates limited medical resources to maximize patient outcomes.
 
-The goal is simple:
-given a set of patients and limited hospital resources, your system needs to decide:
+Project Overview
 
-who gets treated first
-what treatment to give
-how to use ICU beds, doctors, and general beds efficiently
+This project simulates a hospital emergency environment where:
 
-Bad decisions cost points. Good decisions save them.
+Patients arrive with varying severity levels
+Resources (ICU beds, doctors, general beds) are limited
+Decisions must be made in real time
 
- What this project does
+An intelligent agent interacts with the environment to:
 
-At every step, the environment gives you:
+Prioritize patients
+Allocate resources
+Decide treatments
 
-a list of patients (with symptoms, severity, urgency)
-available resources (ICU beds, doctors, etc.)
+The system evaluates decisions using a reward-based mechanism.
 
-Your job:
-
-assign a treatment to each patient
-decide resource allocation
-rank them by priority
-
-Then the system:
-
-calculates a reward
-evaluates your decisions
-updates the environment
-Why this is interesting
-
-This isn’t a toy problem.
-
-You’ll face:
-
-limited ICU beds
-multiple critical patients
-time pressure (patients worsen over time)
-trade-offs between patients
-
-In the hard task, things get worse:
-
-more patients than resources
-and even a new emergency patient appears mid-run
- Project Structure
+Objectives
+Simulate real-world hospital decision-making
+Implement an AI agent for resource allocation
+Optimize patient outcomes under constraints
+Evaluate decisions using a scoring system
+Technology Stack
+Python 3.8+
+FastAPI
+Pydantic
+LLM APIs / Hugging Face (optional)
+Docker (optional)
+Project Structure
 hospital-openenv/
+│
 ├── environment/
-│   ├── env.py        # main environment logic
-│   ├── models.py     # data structures
-│   ├── tasks.py      # predefined scenarios
-│   ├── graders.py    # evaluation logic
-│   └── utils.py      # helper functions
-├── server.py         # FastAPI server
-├── inference.py      # agent runner (LLM-based)
-├── openenv.yaml      # environment config
-├── Dockerfile        # container setup
+│   ├── env.py
+│   ├── models.py
+│   ├── tasks.py
+│   ├── graders.py
+│   └── utils.py
+│
+├── server.py
+├── inference.py
+├── openenv.yaml
 ├── requirements.txt
+├── Dockerfile
 └── README.md
+System Workflow
+The environment provides:
+Patient data
+Available resources
+The agent processes input and decides:
+Patient priority
+Treatment strategy
+Resource allocation
+The environment evaluates:
+Decision quality
+Rewards or penalties
+The simulation proceeds iteratively.
+Installation Guide
+1. Clone the Repository
+git clone <your-repository-link>
+cd hospital-openenv
+2. Create Virtual Environment
+python -m venv venv
+
+Activate the environment:
+
+Windows:
+
+venv\Scripts\activate
+
+Mac/Linux:
+
+source venv/bin/activate
+3. Install Dependencies
+pip install -r requirements.txt
+4. Environment Variables (Optional)
+
+Create a .env file if using external APIs:
+
+API_KEY=your_api_key_here
+MODEL_NAME=mistralai/mistral-7b-instruct
+API_BASE_URL=https://api.openai.com/v1
+Running the Project
+Run the Server
+python server.py
+
+The server will start at:
+
+http://localhost:8000
+Run the Agent
+python inference.py
+
+This executes the agent within the simulation environment.
+
+Using uv (Optional)
+uv run server.py
+Example Workflow
+Start the server
+Run the inference script
+The agent interacts with the environment
+Output includes decisions, scores, and performance metrics
+Evaluation Criteria
+
+The system evaluates performance based on:
+
+Accuracy of patient prioritization
+Efficiency in resource allocation
+Patient outcome optimization
+Handling of emergency scenarios
+Key Features
+Real-time simulation environment
+Resource-constrained decision-making
+Reward-based evaluation system
+Extensible architecture
+Support for LLM-based agents
+Future Enhancements
+Integration with reinforcement learning algorithms
+Graphical user interface
+Real-time visualization dashboard
+More complex patient modeling
+Docker Setup (Optional)
+
+Build the Docker image:
+
+docker build -t hospital-env .
+
+Run the container:
+
+docker run -p 8000:8000 hospital-env
+Common Issues and Solutions
+Virtual environment not activating
+
+Ensure the correct activation command is used:
+
+venv\Scripts\activate
+Module not found errors
+
+Install dependencies again:
+
+pip install -r requirements.txt
+API-related errors
+
+Verify:
+
+API key
+Base URL
+Model name
+Use Cases
+AI applications in healthcare
+Resource allocation optimization
+Reinforcement learning environments
+Decision support systems
+Author
+Name: Sharat Patil and Deepak Bhat
+Project: Hospital Decision-Making OpenEnv
+Course: Engineering Project
+Conclusion
+
+This project demonstrates the application of artificial intelligence in critical decision-making scenarios, particularly in healthcare systems where efficient resource allocation is essential for improving patient outcomes.
