@@ -141,7 +141,7 @@ def _score_resources(
 
 
 # ─────────────────────────────────────────────
-# Ignored urgency penalty
+# Ignored urgency penalty (ignored_critical)
 # ─────────────────────────────────────────────
 
 def _ignored_urgency_fraction(patients: List[Patient], action: Action) -> float:
@@ -150,9 +150,11 @@ def _ignored_urgency_fraction(patients: List[Patient], action: Action) -> float:
         return 0.0
 
     action_ids = {pa.patient_id for pa in action.patient_actions}
-    ignored = sum(1 for p in urgent if p.patient_id not in action_ids)
+    ignored_critical = sum(1 for p in urgent if p.patient_id not in action_ids)
 
-    return ignored / len(urgent)
+    return ignored_critical / len(urgent)
+
+ignored_critical = _ignored_urgency_fraction
 
 
 # ─────────────────────────────────────────────

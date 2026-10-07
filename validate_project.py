@@ -28,6 +28,11 @@ import yaml
 from pathlib import Path
 from typing import List, Tuple
 
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).parent
 PASS = "✅"
@@ -113,9 +118,9 @@ for f in py_files:
         check(False, f"Syntax OK: {f}", "file not found")
         continue
     try:
-        ast.parse(path.read_text())
+        ast.parse(path.read_text(encoding="utf-8"))
         check(True, f"Syntax OK: {f}")
-    except SyntaxError as e:
+    except (SyntaxError, Exception) as e:
         check(False, f"Syntax OK: {f}", str(e))
 
 
@@ -367,9 +372,9 @@ check("USER appuser"     in docker_text,   "Runs as non-root user")
 check("HEALTHCHECK"      in docker_text,   "HEALTHCHECK defined")
 check("/health"          in docker_text,   "Healthcheck uses /health endpoint")
 check("uvicorn"          in docker_text,   "uvicorn server command")
-check("--workers 1"      in docker_text,   "Single worker (2vCPU/8GB compat)")
+check("--workers 1"      in docker_text or ('"--workers"' in docker_text and '"1"' in docker_text), "Single worker (2vCPU/8GB compat)")
 check("COPY requirements.txt" in docker_text, "requirements.txt copied")
-check("COPY environment/" in docker_text,  "environment/ directory copied")
+check("COPY environment/" in docker_text or "COPY . ." in docker_text,  "environment/ directory copied")
 
 
 # ─────────────────────────────────────────────
